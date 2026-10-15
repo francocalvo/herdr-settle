@@ -123,6 +123,8 @@ the user's `config.toml`: `prefix+shift+s` settle, `prefix+a` archive browser.
 
 - **M1** (this build): settle / archive browser / restore, guard, group close,
   notifications, tests, linked + keybound in the live config.
-- **M2** (later, if wanted): agent-level "finished" indicator on restore (start
-  agents paused/notify), auto-settle on idle timeout, archive record pruning
-  after N days, sidebar metadata token showing archive count.
+- **M2** (declined for now — explicit user decision, 2026-10-15): no
+  auto-settle on idle timeout and no archive record pruning; archives live
+  until manually restored or discarded. Still open if ever wanted:
+  agent-level "finished" indicator on restore, sidebar metadata token
+  showing archive count.
