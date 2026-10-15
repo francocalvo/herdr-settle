@@ -22,8 +22,7 @@ from herdr_settle.socket import (
 
 
 @pytest.fixture()
-def fake_server(
-) -> Generator[tuple[Path, list[dict[str, Any]]], None, None]:
+def fake_server() -> Generator[tuple[Path, list[dict[str, Any]]], None, None]:
     """A one-shot JSON-lines socket server on a short-lived unix socket.
 
     Replies are queued in ``replies`` (each a full response object). The
@@ -127,6 +126,7 @@ def test_focused_workspace_picks_focused_entry() -> None:
 
 def test_focused_workspace_none_when_unmarked() -> None:
     """No focused workspace returns None."""
+
     def transport(_method: str, _params: dict[str, Any]) -> dict[str, Any]:
         return {"workspaces": [{"workspace_id": "w1", "focused": False}]}
 

@@ -82,6 +82,7 @@ def _default_tab_id(client: HerdrClient, workspace_id: str) -> str | None:
         return None
     return str(tabs[0].get("tab_id", "")) or None
 
+
 def _focus_recorded_tab(
     client: HerdrClient,
     workspace_id: str,

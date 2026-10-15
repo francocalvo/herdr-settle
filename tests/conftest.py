@@ -161,11 +161,15 @@ class FakeHerdr:
         if workspace_id not in self.workspaces:
             raise SocketRequestError("not_found", "workspace not found")
         group_id = self.workspaces[workspace_id].get("group_id")
-        members = [
-            wid
-            for wid in self.workspace_order
-            if self.workspaces[wid].get("group_id") == group_id
-        ] if group_id else []
+        members = (
+            [
+                wid
+                for wid in self.workspace_order
+                if self.workspaces[wid].get("group_id") == group_id
+            ]
+            if group_id
+            else []
+        )
         if len(members) > 1 and not params.get("close_group"):
             raise SocketRequestError(
                 "workspace_group_close_required",

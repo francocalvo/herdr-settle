@@ -89,6 +89,7 @@ def inject_resume_commands(
 
 def pane_label_of(root: dict[str, Any], pane_id: str) -> str | None:
     """Return the label of a pane node in a layout tree, best effort."""
+
     def walk(node: dict[str, Any]) -> str | None:
         if node.get("type") == "split":
             for child in (node.get("first"), node.get("second")):
