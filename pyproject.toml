@@ -1,0 +1,62 @@
+[project]
+name = "herdr-settle"
+version = "0.1.0"
+description = "Settle (archive) herdr spaces and restore them with resumed conversations."
+requires-python = ">=3.12"
+dependencies = [
+    "typer>=0.12.0",
+    "textual>=0.86.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.24.0",
+    "ruff>=0.7.0",
+    "mypy>=1.13.0",
+]
+
+[project.scripts]
+herdr-settle = "herdr_settle.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/herdr_settle"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "D", "UP", "B", "C4", "SIM"]
+ignore = ["D100", "D104"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*" = ["D103", "D101", "D102", "D107"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_return_any = true
+warn_unused_ignores = true
+mypy_path = "src"
+
+[[tool.mypy.overrides]]
+module = ["typer", "typer.*", "textual", "textual.*", "pytest", "pytest.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["herdr_settle.cli", "herdr_settle.tui"]
+# When typer/textual resolve to Any (envs without the project venv), their
+# decorators and App base class look untyped; live venv runs keep strictness.
+disable_error_code = ["untyped-decorator", "misc", "no-any-return"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
