@@ -102,15 +102,15 @@ Textual popup exposed as a plugin pane entrypoint:
 ## Stack
 
 uv, Python 3.12+, `src/herdr_settle/` (socket client, settle, restore, archive
-store, tui, cli), Textual for the popup, pytest/ruff/mypy gates. No config
-file, no credentials — state only in `HERDR_PLUGIN_STATE_DIR`.
+store, tui, cli), Textual for the popup, pytest/ruff/mypy gates. No config file,
+no credentials — state only in `HERDR_PLUGIN_STATE_DIR`.
 
-`herdr-plugin.toml`: id `francocalvo.settle`; actions `settle` (+ `--force`
-via a separate `settle-force` action for keybinding symmetry) and the
-`archive` pane entrypoint (popup placement). The `[[build]]` step runs
-`uv sync --frozen` (creates `.venv`); manifest commands invoke
-`.venv/bin/python -m herdr_settle …` relative to the plugin directory, so
-the manifest is portable. Keybindings live in the user's `config.toml`.
+`herdr-plugin.toml`: id `francocalvo.settle`; actions `settle` (+ `--force` via
+a separate `settle-force` action for keybinding symmetry) and the `archive` pane
+entrypoint (popup placement). The `[[build]]` step runs `uv sync --frozen`
+(creates `.venv`); manifest commands invoke `.venv/bin/python -m herdr_settle …`
+relative to the plugin directory, so the manifest is portable. Keybindings live
+in the user's `config.toml`.
 
 ## Testing
 
