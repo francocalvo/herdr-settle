@@ -8,10 +8,11 @@ workspace with its **agent conversations resumed in place** (`pi --session`,
 
 Mental model: the inbox-triage "settle" idea from
 [douglascorrea/herdr-agent-inbox](https://github.com/douglascorrea/herdr-agent-inbox)
-and [calebcauthon/herdr-theos-settler](https://github.com/calebcauthon/herdr-theos-settler),
-applied to **spaces** with true archiving. Both references keep settled work
-in the sidebar (moved/prefixed) because herdr has no view-projection for the
-Spaces list; hiding requires `workspace.close`, which is what makes the
+and
+[calebcauthon/herdr-theos-settler](https://github.com/calebcauthon/herdr-theos-settler),
+applied to **spaces** with true archiving. Both references keep settled work in
+the sidebar (moved/prefixed) because herdr has no view-projection for the Spaces
+list; hiding requires `workspace.close`, which is what makes the
 resume-on-restore flow both necessary and possible.
 
 ## Non-goals
@@ -30,9 +31,10 @@ Proven live during design — the exact calls the plugin makes:
 
 - `workspace.create {label, cwd, focus}` → new workspace (with one default
   tab/pane that must be dealt with on restore).
-- `workspace.list` / `workspace.get` / `workspace.close {workspace_id,
-  close_group?}` — close may reject a primary workspace in a linked-worktree
-  group with `workspace_group_close_required` unless `close_group: true`.
+- `workspace.list` / `workspace.get` /
+  `workspace.close {workspace_id, close_group?}` — close may reject a primary
+  workspace in a linked-worktree group with `workspace_group_close_required`
+  unless `close_group: true`.
 - `tab.list {workspace_id}` → tabs; `layout.export {tab_id}` →
   `{root: LayoutNode, focused_pane_id, zoomed}`.
 - `layout.apply {root, workspace_id, tab_label, focus}` — recreates the tree;
@@ -40,8 +42,8 @@ Proven live during design — the exact calls the plugin makes:
   (verified: a pane with `command: ["sh","-c","…"]` ran it as the foreground
   process). Applies create a **new tab**; the default tab from
   `workspace.create` remains and must be closed (or reused via `tab_id`).
-- `agent.list` → per agent: `pane_id`, `tab_id`, `workspace_id`, `agent`
-  (e.g. "pi", "claude"), `agent_status` (idle/working/blocked/done/unknown),
+- `agent.list` → per agent: `pane_id`, `tab_id`, `workspace_id`, `agent` (e.g.
+  "pi", "claude"), `agent_status` (idle/working/blocked/done/unknown),
   `agent_session {source, agent, kind, value}` (session ref, present when an
   integration reported it).
 - `notification.show` for feedback; `HERDR_SOCKET_PATH` for the socket.
@@ -59,18 +61,18 @@ LayoutNode = pane `{type, cwd, label?, env?, command?, pane_id?}` | split
    `working` or `blocked`, refuse with a notification ("settle-scratch has 2
    working agents") unless `--force`.
 3. Snapshot per tab: `layout.export(tab_id)`; enrich pane nodes with resume
-   commands from the tab's agent session refs:
-   `pi` → `["pi", "--session", value]`, `claude` → `["claude", "--resume",
-   value]`, `codex` → `["codex", "resume", value]`, unknown agent without a
-   mapping → plain shell in the saved cwd. Panes without agents stay plain
-   shells in their saved cwd.
+   commands from the tab's agent session refs: `pi` →
+   `["pi", "--session", value]`, `claude` → `["claude", "--resume", value]`,
+   `codex` → `["codex", "resume", value]`, unknown agent without a mapping →
+   plain shell in the saved cwd. Panes without agents stay plain shells in their
+   saved cwd.
 4. Write the archive record to `$HERDR_PLUGIN_STATE_DIR/archives/<uuid>.json`
    (atomic write): label, cwd, settled_at, tabs (label, layout root,
    focused_pane label), agent summary (count, which were resumable), source
    workspace id.
-5. `workspace.close`. If it returns `workspace_group_close_required`:
-   snapshot every workspace in the group (each its own archive record, taken
-   before closing), then close with `close_group: true`.
+5. `workspace.close`. If it returns `workspace_group_close_required`: snapshot
+   every workspace in the group (each its own archive record, taken before
+   closing), then close with `close_group: true`.
 6. `notification.show`: "Settled <label> — N conversations archived".
 
 ### Archive browser (`prefix+a`, plugin popup pane)
@@ -79,17 +81,16 @@ Textual popup (same entrypoint mechanics as herdr-linear-ws's wizard):
 
 - Rows: label, tab count, resumable-conversation count, settled-at (relative
   time), workspace cwd (dim).
-- `enter` → restore; `x` → confirm-free **discard** (record deleted, space
-  stays closed; a second confirm step `y/n`); `r` → refresh; `q`/`esc` →
-  close.
+- `enter` → restore; `x` → confirm-free **discard** (record deleted, space stays
+  closed; a second confirm step `y/n`); `r` → refresh; `q`/`esc` → close.
 - Empty state: "No settled spaces" hint.
 
 ### Restore (un-settle)
 
 1. `workspace.create {label, cwd, focus: true}`.
-2. Per archived tab: `layout.apply {root, workspace_id, tab_label}` — first
-   tab applies into the default tab via `tab_id` (fallback: close the default
-   tab after applying; verify which works).
+2. Per archived tab: `layout.apply {root, workspace_id, tab_label}` — first tab
+   applies into the default tab via `tab_id` (fallback: close the default tab
+   after applying; verify which works).
 3. Focus the recorded focused tab/pane (best effort by label, else last).
 4. Delete the archive record, notify "Restored <label>", close the popup.
 5. Panes run their resume argv → herdr's agent detection + integrations
@@ -97,17 +98,16 @@ Textual popup (same entrypoint mechanics as herdr-linear-ws's wizard):
 
 ## Stack & repo
 
-Same shape as herdr-linear-ws: `~/personal/herdr-settle`, git, uv, Python
-3.12+, `src/herdr_settle/` (socket client, settle, restore, archive store,
-tui, cli), Textual for the popup, pytest/ruff/mypy gates. No config file, no
-credentials — state only in `HERDR_PLUGIN_STATE_DIR`.
+Same shape as herdr-linear-ws: `~/personal/herdr-settle`, git, uv, Python 3.12+,
+`src/herdr_settle/` (socket client, settle, restore, archive store, tui, cli),
+Textual for the popup, pytest/ruff/mypy gates. No config file, no credentials —
+state only in `HERDR_PLUGIN_STATE_DIR`.
 
-`herdr-plugin.toml`: id `francocalvo.settle`; actions `settle` (+ `--force`
-via a separate `settle-force` action for keybinding symmetry) and the
-`archive` pane entrypoint (popup placement). Manifest commands invoke the
-repo's venv python directly (machine-local linked plugin, same as
-linear-ws). Keybindings live in the user's `config.toml`:
-`prefix+shift+s` settle, `prefix+a` archive browser.
+`herdr-plugin.toml`: id `francocalvo.settle`; actions `settle` (+ `--force` via
+a separate `settle-force` action for keybinding symmetry) and the `archive` pane
+entrypoint (popup placement). Manifest commands invoke the repo's venv python
+directly (machine-local linked plugin, same as linear-ws). Keybindings live in
+the user's `config.toml`: `prefix+shift+s` settle, `prefix+a` archive browser.
 
 ## Testing
 
@@ -121,8 +121,8 @@ linear-ws). Keybindings live in the user's `config.toml`:
 
 ## Milestones
 
-- **M1** (this build): settle / archive browser / restore, guard, group
-  close, notifications, tests, linked + keybound in the live config.
-- **M2** (later, if wanted): agent-level "finished" indicator on restore
-  (start agents paused/notify), auto-settle on idle timeout, archive record
-  pruning after N days, sidebar metadata token showing archive count.
+- **M1** (this build): settle / archive browser / restore, guard, group close,
+  notifications, tests, linked + keybound in the live config.
+- **M2** (later, if wanted): agent-level "finished" indicator on restore (start
+  agents paused/notify), auto-settle on idle timeout, archive record pruning
+  after N days, sidebar metadata token showing archive count.
