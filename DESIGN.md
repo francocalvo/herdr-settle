@@ -1,4 +1,7 @@
-# herdr-settle
+# herdr-settle — design notes
+
+Design rationale and implementation notes. For usage and install see
+[README.md](README.md).
 
 Settle (archive) herdr **spaces**: when you're done with a workspace, `settle`
 it — it's snapshotted and closed, so the Spaces sidebar stays clean. Open the
@@ -77,7 +80,7 @@ LayoutNode = pane `{type, cwd, label?, env?, command?, pane_id?}` | split
 
 ### Archive browser (`prefix+a`, plugin popup pane)
 
-Textual popup (same entrypoint mechanics as herdr-linear-ws's wizard):
+Textual popup exposed as a plugin pane entrypoint:
 
 - Rows: label, tab count, resumable-conversation count, settled-at (relative
   time), workspace cwd (dim).
@@ -96,18 +99,18 @@ Textual popup (same entrypoint mechanics as herdr-linear-ws's wizard):
 5. Panes run their resume argv → herdr's agent detection + integrations
    re-report sessions natively.
 
-## Stack & repo
+## Stack
 
-Same shape as herdr-linear-ws: `~/personal/herdr-settle`, git, uv, Python 3.12+,
-`src/herdr_settle/` (socket client, settle, restore, archive store, tui, cli),
-Textual for the popup, pytest/ruff/mypy gates. No config file, no credentials —
-state only in `HERDR_PLUGIN_STATE_DIR`.
+uv, Python 3.12+, `src/herdr_settle/` (socket client, settle, restore, archive
+store, tui, cli), Textual for the popup, pytest/ruff/mypy gates. No config
+file, no credentials — state only in `HERDR_PLUGIN_STATE_DIR`.
 
-`herdr-plugin.toml`: id `francocalvo.settle`; actions `settle` (+ `--force` via
-a separate `settle-force` action for keybinding symmetry) and the `archive` pane
-entrypoint (popup placement). Manifest commands invoke the repo's venv python
-directly (machine-local linked plugin, same as linear-ws). Keybindings live in
-the user's `config.toml`: `prefix+shift+s` settle, `prefix+a` archive browser.
+`herdr-plugin.toml`: id `francocalvo.settle`; actions `settle` (+ `--force`
+via a separate `settle-force` action for keybinding symmetry) and the
+`archive` pane entrypoint (popup placement). The `[[build]]` step runs
+`uv sync --frozen` (creates `.venv`); manifest commands invoke
+`.venv/bin/python -m herdr_settle …` relative to the plugin directory, so
+the manifest is portable. Keybindings live in the user's `config.toml`.
 
 ## Testing
 
@@ -121,10 +124,9 @@ the user's `config.toml`: `prefix+shift+s` settle, `prefix+a` archive browser.
 
 ## Milestones
 
-- **M1** (this build): settle / archive browser / restore, guard, group close,
-  notifications, tests, linked + keybound in the live config.
-- **M2** (declined for now — explicit user decision, 2026-10-15): no
-  auto-settle on idle timeout and no archive record pruning; archives live
-  until manually restored or discarded. Still open if ever wanted:
-  agent-level "finished" indicator on restore, sidebar metadata token
-  showing archive count.
+- **M1** (shipped): settle / archive browser / restore, guard, group close,
+  notifications, tests, linked plugin + keybindings.
+- **M2** (deliberately out of scope): no auto-settle on idle timeout and no
+  archive record pruning; archives live until manually restored or discarded.
+  Still open if ever wanted: agent-level "finished" indicator on restore,
+  sidebar metadata token showing archive count.

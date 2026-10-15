@@ -1,7 +1,7 @@
 id = "francocalvo.settle"
 name = "Settle"
 version = "0.1.0"
-min_herdr_version = "0.7.4"
+min_herdr_version = "0.9.3"
 description = "Settle (archive) herdr spaces and restore them with resumed conversations"
 platforms = ["macos", "linux"]
 
@@ -13,14 +13,14 @@ id = "settle"
 title = "Settle current space"
 description = "Archive the focused workspace and close it; restore later with resumed conversations."
 contexts = ["workspace", "pane"]
-command = ["/Users/francocalvo/personal/herdr-settle/.venv/bin/python", "-m", "herdr_settle", "settle"]
+command = [".venv/bin/python", "-m", "herdr_settle", "settle"]
 
 [[actions]]
 id = "settle-force"
 title = "Settle current space (force)"
 description = "Archive and close the focused workspace even when agents are still working."
 contexts = ["workspace", "pane"]
-command = ["/Users/francocalvo/personal/herdr-settle/.venv/bin/python", "-m", "herdr_settle", "settle", "--force"]
+command = [".venv/bin/python", "-m", "herdr_settle", "settle", "--force"]
 
 [[panes]]
 id = "archive"
@@ -29,4 +29,4 @@ description = "Browse settled spaces; restore or discard them."
 placement = "popup"
 width = "70%"
 height = "50%"
-command = ["/Users/francocalvo/personal/herdr-settle/.venv/bin/python", "-m", "herdr_settle", "archive"]
+command = [".venv/bin/python", "-m", "herdr_settle", "archive"]
