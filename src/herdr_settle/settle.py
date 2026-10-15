@@ -148,10 +148,10 @@ def snapshot_workspace(
     agents = agents_in_workspace(client.agents(), workspace_id)
     sessions = sessions_by_tab(agents)
 
-    cwd = _workspace_cwd(workspace, agents)
     tabs: list[ArchivedTab] = []
     agents_total = 0
     agents_resumable = 0
+    pane_cwd: str | None = None
     for tab in client.tabs(workspace_id):
         tab_id = str(tab.get("tab_id", ""))
         layout = client.export_tab_layout(tab_id)
@@ -162,6 +162,7 @@ def snapshot_workspace(
         )
         agents_total += tab_total
         agents_resumable += tab_resumable
+        pane_cwd = pane_cwd or _first_pane_cwd(root)
         focused_label = pane_label_of(root, str(layout.get("focused_pane_id") or ""))
         tabs.append(
             ArchivedTab(
@@ -174,7 +175,7 @@ def snapshot_workspace(
     return ArchiveRecord(
         id=record_id or new_record_id(),
         label=label,
-        cwd=cwd,
+        cwd=_workspace_cwd(workspace, agents, pane_cwd),
         settled_at=now_iso(),
         tabs=tabs,
         source_workspace_id=workspace_id,
@@ -194,15 +195,35 @@ def _find_workspace(
     )
 
 
+def _first_pane_cwd(root: dict[str, Any]) -> str | None:
+    """Return the cwd of the first pane node in a layout tree."""
+    if root.get("type") == "split":
+        for child in (root.get("first"), root.get("second")):
+            if isinstance(child, dict):
+                found = _first_pane_cwd(child)
+                if found:
+                    return found
+        return None
+    cwd = root.get("cwd")
+    return str(cwd) if cwd else None
+
+
 def _workspace_cwd(
     workspace: dict[str, Any],
     agents: list[dict[str, Any]],
+    pane_cwd: str | None = None,
 ) -> str:
-    """Best-effort workspace cwd: workspace entry, agent cwd, else home."""
+    """Best-effort workspace cwd: workspace entry, agent cwd, pane, home.
+
+    Real ``workspace.list`` entries do not carry a cwd, so the first
+    snapshot pane's cwd is the useful fallback before home.
+    """
     candidates = [workspace.get("cwd"), *(agent.get("cwd") for agent in agents)]
     for candidate in candidates:
         if candidate:
             return str(candidate)
+    if pane_cwd:
+        return pane_cwd
     return os.path.expanduser("~")
 
 

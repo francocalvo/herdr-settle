@@ -34,21 +34,29 @@ def restore_workspace(
     record = store.get(record_id)
     workspace_id = client.create_workspace(label=record.label, cwd=record.cwd)
 
-    default_tab_id = _default_tab_id(client, workspace_id)
-    for index, tab in enumerate(record.tabs):
-        if index == 0 and default_tab_id:
+    try:
+        default_tab_id = _default_tab_id(client, workspace_id)
+        for index, tab in enumerate(record.tabs):
+            if index == 0 and default_tab_id:
+                # Into the default tab: target by tab_id alone — herdr rejects
+                # a request carrying both tab_id and workspace_id.
+                client.apply_layout(
+                    tab.layout,
+                    tab_id=default_tab_id,
+                    tab_label=tab.label or None,
+                )
+                continue
             client.apply_layout(
                 tab.layout,
-                workspace_id,
-                tab_id=default_tab_id,
+                workspace_id=workspace_id,
                 tab_label=tab.label or None,
             )
-            continue
-        client.apply_layout(
-            tab.layout,
-            workspace_id,
-            tab_label=tab.label or None,
-        )
+    except Exception:
+        # Do not leave a half-built workspace behind; the record stays so a
+        # later retry can start from a clean create.
+        with contextlib.suppress(Exception):
+            client.close_workspace(workspace_id)
+        raise
 
     # Extra archived tabs were applied as NEW tabs; if the record has tabs
     # beyond the default one there is nothing left over. But if the record

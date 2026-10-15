@@ -255,10 +255,11 @@ class FakeHerdr:
     def _on_layout_apply(self, params: dict[str, Any]) -> dict[str, Any]:
         """Recreate panes from a layout tree into a workspace tab."""
         self.layout_applies.append(dict(params))
-        workspace_id = params["workspace_id"]
         if params.get("tab_id"):
+            workspace_id = str(params["tab_id"]).split(":")[0]
             tab_id = str(params["tab_id"])
         else:
+            workspace_id = str(params["workspace_id"])
             self._counter += 1
             tab_id = f"{workspace_id}:t{self._counter}"
             self.tabs.setdefault(workspace_id, []).append(

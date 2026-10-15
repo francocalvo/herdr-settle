@@ -176,20 +176,25 @@ class HerdrClient:
     def apply_layout(
         self,
         root: dict[str, Any],
-        workspace_id: str,
         *,
         tab_id: str | None = None,
+        workspace_id: str | None = None,
         tab_label: str | None = None,
         focus: bool = False,
     ) -> dict[str, Any]:
-        """Apply a layout tree into a workspace tab."""
-        params: dict[str, Any] = {
-            "root": root,
-            "workspace_id": workspace_id,
-            "focus": focus,
-        }
+        """Apply a layout tree into exactly one target.
+
+        herdr rejects requests carrying both ``tab_id`` and
+        ``workspace_id`` (``invalid_target``), so exactly one must be set.
+        """
+        if bool(tab_id) == bool(workspace_id):
+            msg = "apply_layout needs exactly one of tab_id or workspace_id"
+            raise SocketError(msg)
+        params: dict[str, Any] = {"root": root, "focus": focus}
         if tab_id:
             params["tab_id"] = tab_id
+        if workspace_id:
+            params["workspace_id"] = workspace_id
         if tab_label:
             params["tab_label"] = tab_label
         result = self.call("layout.apply", params)
